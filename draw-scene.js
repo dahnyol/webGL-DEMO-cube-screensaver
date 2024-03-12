@@ -1,5 +1,5 @@
 
-function drawScene(gl, programInfo, buffers, squareRotation){
+function drawScene(gl, programInfo, buffers, cubeRotation){
     gl.clearColor(0.0, 0.0, 0.0, 1.0) // Clear to black, fully opaque
     gl.clearDepth(1.0); // Clear everything
     gl.enable(gl.DEPTH_TEST); // Enable depth testing
@@ -34,14 +34,29 @@ function drawScene(gl, programInfo, buffers, squareRotation){
     mat4.rotate(
         modelViewMatrix, // destination matrix
         modelViewMatrix, // matrix to rotate
-        squareRotation, // amount to rotate in radians
+        cubeRotation, // amount to rotate in radians
         [0, 0, 1],
     ); // axis to rotate around (Z axis), in this case the center of screen
+    mat4.rotate(
+        modelViewMatrix,
+        modelViewMatrix,
+        cubeRotation * 0.7,
+        [0, 1, 0],
+    ); // axis to rotate around Y axis
+    mat4.rotate(
+        modelViewMatrix,
+        modelViewMatrix,
+        cubeRotation * 0.3,
+        [1, 0, 0],
+    ); // axis to rotate around X axis
 
-    // Tell WebGL how to pull out the positions from the position buffer into the vertexPosition attribute.
+    // Tell WebGL how to pull out the positions from the position buffer into the vertexPosition attribute. (And color)
     setPositionAttribute(gl, buffers, programInfo);
-
     setColorAttribute(gl, buffers, programInfo);
+    
+    // Tell WebGL which indices to use to index the vertices
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+    
     // Tell WebGL to use our program when drawing
     gl.useProgram(programInfo.program);
 
@@ -58,15 +73,16 @@ function drawScene(gl, programInfo, buffers, squareRotation){
     );
 
     {
+        const vertexCount = 36;
+        const type = gl.UNSIGNED_SHORT;
         const offset = 0;
-        const vertexCount = 4;
-        gl.drawArrays(gl.TRIANGLE_STRIP, offset, vertexCount);
+        gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
     }
 }
 
 // Tell WebGL to pull out the positions from the position buffer into the vertexPosition attribute.
 function setPositionAttribute(gl, buffers, programInfo){
-    const numComponents = 2; // pull out 2 values per iteration
+    const numComponents = 3; // 3 to account for z-component added to vertices 
     const type = gl.FLOAT; // the data in the buffer is 32bit floats
     const normalize = false; // don't normalize
     const stride = 0; // how many bytes to get from one set of values to the next
@@ -87,12 +103,11 @@ function setPositionAttribute(gl, buffers, programInfo){
 
 // Tell WebGL how to pull the colors from the color buffer into the verterxColor attribute
 function setColorAttribute(gl, buffers, programInfo){
-    const numComponents = 4; // pull out 2 values per it
-    const type = gl.FLOAT; // the data in the buffer is 
-    const normalize = false; // don't normalize
-    const stride = 0; // how many bytes to get from one set of values to the next
-    // 0 = use type and numComponents above
-    const offset = 0 // how many bytes inside the buffer to start from
+    const numComponents = 4;
+    const type = gl.FLOAT;  
+    const normalize = false;
+    const stride = 0; 
+    const offset = 0 
     
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
     gl.vertexAttribPointer(
