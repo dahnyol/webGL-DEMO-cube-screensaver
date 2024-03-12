@@ -1,6 +1,10 @@
 import { initBuffers } from "./init-buffers.js";
 import { drawScene } from "./draw-scene.js";
 
+// variables to track location of the camera
+let squareRotation = 0.0;
+let deltaTime = 0;
+
 main()
 //
 // start here
@@ -75,8 +79,20 @@ function main() {
   // objects we'll be drawing.
   const buffers = initBuffers(gl);
 
-  // Draw the scene
-  drawScene(gl, programInfo, buffers);
+  let then = 0;
+  // Draw scene repeatedly
+  function render(now) {
+    now *= 0.001; // convert to seconds
+    deltaTime = now - then;
+    then = now;
+
+    drawScene(gl, programInfo, buffers, squareRotation);
+    squareRotation += deltaTime;
+
+    requestAnimationFrame(render);
+  }
+  requestAnimationFrame(render);
+
 }
 
 //
